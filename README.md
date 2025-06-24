@@ -133,7 +133,8 @@ Sensor data is processed by a trained machine learning model that estimates the 
 
 
 ## 🖼️ Project Images
-
+## Working Model
+![Working Model](images/project.jpg)
 ### 📊 Prediction Table  
 ![Prediction Table](images/Predictiontable.jpg)
 
