@@ -24,8 +24,26 @@ This repository presents the design and implementation of an IoT-powered Milk Sp
 
 ## Introduction
 
-Milk spoilage leads to massive wastage and potential health risks due to microbial contamination, especially in rural collection centers lacking real-time monitoring tools. This project presents **MilkSafe**—a smart, real-time monitoring system using IoT and machine learning to track freshness and alert before spoilage.
-
+Milk is one of the most consumed dairy products worldwide, but it is also highly 
+perishable. Every day, millions of liters of milk are wasted due to spoilage caused by 
+improper storage, transportation delays, and lack of proper monitoring methods. In many 
+rural collection centers, milk is tested only for fat and SNF (Solid-Not-Fat), without any 
+microbial or freshness assessment, leading to spoilage before reaching processing units. 
+This results in economic loss and health risks due to accidental consumption of spoiled 
+milk. 
+To address this issue, our project proposes a smart milk spoilage detection system that can 
+monitor the freshness of milk in real-time. The system integrates multiple sensors—pH 
+sensor, temperature sensor, gas sensor, and turbidity sensor—to detect early signs of 
+spoilage. These sensors are connected to the ESP32 microcontroller, which collects the 
+data, processes it, and sends alerts when milk quality falls below safe levels. 
+The ESP32 enables wireless communication through Wi-Fi or Bluetooth, allowing the 
+system to transmit real-time data to a cloud platform or mobile app for remote monitoring. 
+This provides users—farmers, dairy transporters, and processing centers—with up-to-date 
+information on milk conditions during storage and transportation. 
+By implementing this system, the project aims to improve milk safety, reduce post-harvest 
+losses, and enhance the efficiency of the dairy supply chain, especially in rural areas. It 
+offers a cost-effective, portable, and easy-to-use solution to ensure that only fresh and safe 
+milk reaches consumers, supporting both public health and the dairy industry. 
 ## Overview
 
 The MilkSafe system uses:
@@ -38,12 +56,18 @@ The MilkSafe system uses:
 Data is collected and transmitted for analysis. A trained ML model predicts spoilage time, and results are shown on a user-friendly dashboard.
 
 ## Goals and Objectives
-
-🎯 Monitor gas levels, pH, and temperature in real-time  
-🎯 Predict spoilage using machine learning  
-🎯 Provide freshness classification: Fresh / Warning / Spoiled  
-🎯 Alert users early to avoid health hazards and wastage  
-🎯 Reduce post-harvest dairy loss through smart intervention
+The main objective of this project is to develop a real-time milk spoilage detection system 
+using smart sensors and a microcontroller to ensure milk quality during storage and 
+transportation. The system aims to: 
+1. To monitor key freshness parameters such as pH, temperature, turbidity, and gas 
+levels in milk. 
+2. To detect early signs of spoilage using sensor data, helping prevent health risks and 
+3 
+reduce milk wastage. 
+3. To enable real-time alerts and remote monitoring of milk quality through ESP32
+based wireless communication. 
+4. To provide rural milk collection centers with an affordable and easy-to-use spoilage 
+detection system.
 
 ## Target Audience
 
@@ -55,11 +79,23 @@ Data is collected and transmitted for analysis. A trained ML model predicts spoi
 
 ## Key Features
 
-📌 Real-time sensor monitoring via ESP32  
-📌 Freshness prediction using Random Forest algorithm  
-📌 Visual dashboard displaying sensor trends  
-📌 Classifies samples as Fresh, Warning, or Spoiled  
-📌 Low-cost, portable, and easy-to-use hardware system
+Integration of several sensors (turbidity, pH, temperature, and gas) to track key 
+factors influencing milk freshness 
+ Utilization of the ESP32 microcontroller for data collection, processing, and wireless 
+connectivity 
+ Real-time alerts via IoT to inform users of any fall in milk quality 
+ Remote monitoring ability through mobile or web portals, improving decision
+making and prevention measures 
+ Implementation in rural milk collection centers, transport vehicles, cold storage 
+facilities, and dairy processing plants 
+ Decrease in wastage of milk and financial loss by determining spoilage prior to 
+processing units 
+ Guaranteeing safety for the consumer by stopping supply of rotten milk into the 
+market 
+ The system is designed to be cost-effective, scalable, and easy to deploy, making it 
+suitable for both small-scale and large-scale dairy operations. In the future, it can be 
+extended to include cloud data storage, data analytics, and machine learning 
+algorithms for predictive spoilage detection
 
 ## Technical Approach
 
@@ -83,15 +119,8 @@ Data is collected and transmitted for analysis. A trained ML model predicts spoi
 
 ## Block Diagram
 
-```
-[pH Sensor] →  
-[Gas Sensor] →  [ESP32] → [ML Model] → [Dashboard]  
-[Temp Sensor] →
-```
+![Block Diagram](images/Blockdiagram.jpg)
 
-## Circuit Diagram
-
-*To be uploaded as image or Fritzing diagram*
 
 ## Pin Connections
 
@@ -106,11 +135,6 @@ Data is collected and transmitted for analysis. A trained ML model predicts spoi
 - **pH Sensor:** Detects increasing acidity (spoilage indicator)  
 - **Gas Sensor:** Detects ammonia/H₂S from microbial activity  
 - **Temp Sensor:** Detects cold chain breach  
-
-## Working Code
-
-- Arduino script for sensor reading and serial data transmission  
-- Python script for dashboard display and ML prediction  
 
 ## Application Videos
 
