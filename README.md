@@ -149,10 +149,7 @@ Sensor data is processed by a trained machine learning model that estimates the 
 
 
 ## Application Videos
-[
-### 🎥 Working Demonstration
-
-📽 **[▶️ Watch the Demo]()**](https://github.com/mohanrajs2006git/MilkSafe/blob/main/images/Working.mp4?raw=true)
+https://github.com/user-attachments/assets/ed3032ad-ff12-4b73-a92d-7d604d7b6702
 
 
 📢 This video showcases the real-time functioning of the MilkSafe system.
@@ -164,3 +161,24 @@ Sensor data is processed by a trained machine learning model that estimates the 
 ➤ Machine learning model predicts spoilage time and freshness category.
 
 ➤ Dashboard displays trends and sends alerts for timely action.
+
+## Contributors
+
+- Mohan Raj S  
+- Likhit S  
+- Manishankar M  
+- Naveensurya V  
+
+---
+
+## Acknowledgements
+
+- Dr. S. Ramkumar, Associate Professor, ECE, Sri Eshwar College of Engineering  
+
+---
+
+## Contact Information
+
+- Mohan Raj S – [mohanrajs.ec2023@gmail.com](mailto:mohanrajs.ec2023@gmail.com)  
+- Institution: Sri Eshwar College of Engineering  
+- Duration: Jan – May 2025
