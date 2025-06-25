@@ -1,0 +1,147 @@
+import serial
+import joblib
+from datetime import datetime
+import pandas as pd
+from pymongo import MongoClient
+import requests
+
+# ==== Load trained ML model ====
+model = joblib.load(r"D:\PROJECT\Milk Spoilage\milk_model.pkl")
+
+# ==== Connect to MongoDB ====
+client = MongoClient("mongodb://localhost:27017")  # Replace with Atlas URI if needed
+db = client["milk_spoilage_db"]
+collection = db["readings"]
+
+# ==== ThingSpeak API key ====
+THINGSPEAK_WRITE_API_KEY = "JI9OJG0IRO1OADOO"
+
+# ==== Open Serial Port ====
+ser = serial.Serial('COM8', 115200, timeout=1)  # Adjust COM port if needed
+
+# ==== Parse Serial Data ====
+def parse_sensor_data(lines):
+    temp = None
+    gas = None
+    ph = None
+
+    for line in lines:
+        if line.startswith("Temperature (°C):"):
+            val = line.split(":")[1].strip()
+            if val.lower() != "error":
+                try:
+                    temp = float(val)
+                except ValueError:
+                    temp = None
+
+        elif line.startswith("Gas PPM (approx):"):
+            val = line.split(":")[1].strip()
+            try:
+                gas = float(val)
+            except ValueError:
+                gas = None
+
+        elif line.startswith("pH Value:"):
+            val = line.split(":")[1].strip()
+            if val.lower() != "invalid pH reading!":
+                try:
+                    ph = float(val)
+                except ValueError:
+                    ph = None
+
+    return temp, gas, ph
+
+# ==== Predict Freshness ====
+def predict_freshness(temp, gas, ph):
+    features = pd.DataFrame({'temp': [temp], 'gas': [gas], 'ph': [ph]})
+    try:
+        predicted_hours = model.predict(features)[0]
+    except Exception as e:
+        print(f"Prediction error: {e}")
+        predicted_hours = None
+    return predicted_hours
+
+# ==== Save Data to MongoDB ====
+def save_to_mongodb(timestamp, temperature, gas_ppm, ph, freshness_hours):
+    document = {
+        "timestamp": timestamp,
+        "temperature": temperature,
+        "gas_ppm": gas_ppm,
+        "ph": ph,
+        "predicted_freshness_hours": freshness_hours,
+        "status": "SPOILED" if freshness_hours < 1.0 else "FRESH"
+    }
+    try:
+        collection.insert_one(document)
+        print("✅ Data saved to MongoDB.")
+    except Exception as e:
+        print(f"❌ MongoDB save error: {e}")
+
+# ==== Send Data to ThingSpeak ====
+def send_to_thingspeak(temp, gas, ph, freshness):
+    url = "https://api.thingspeak.com/update"
+    payload = {
+        'api_key': THINGSPEAK_WRITE_API_KEY,
+        'field1': temp,
+        'field2': gas,
+        'field3': ph,
+        'field4': freshness
+    }
+    try:
+        response = requests.post(url, params=payload, timeout=5)
+        if response.status_code == 200 and response.text != '0':
+            print("✅ Data sent to ThingSpeak")
+        else:
+            print(f"❌ ThingSpeak error: Status {response.status_code}, Response {response.text}")
+    except Exception as e:
+        print(f"❌ Exception sending to ThingSpeak: {e}")
+
+# ==== Main Loop ====
+def main():
+    buffer = []
+    while True:
+        line_bytes = ser.readline()
+        if not line_bytes:
+            continue
+        line = line_bytes.decode('utf-8', errors='ignore').strip()
+
+        if line == "----------------------------" or line == "":
+            if buffer:
+                temp, gas, ph = parse_sensor_data(buffer)
+                buffer.clear()
+
+                if temp is None or gas is None or ph is None:
+                    print("❌ Invalid sensor data. Skipping...\n")
+                    continue
+
+                if not (0 <= ph <= 14):
+                    print(f"⚠️ pH value out of range: {ph}. Skipping prediction.\n")
+                    continue
+
+                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                freshness = predict_freshness(temp, gas, ph)
+
+                print(f"\n⏰ Timestamp: {now}")
+                print(f"🌡️ Temperature: {temp:.2f} °C")
+                print(f"🧪 Gas PPM: {gas:.2f}")
+                print(f"⚗️ pH Value: {ph:.2f}")
+
+                if freshness is not None:
+                    print(f"⏳ Predicted Freshness Left: {freshness:.2f} hours")
+                    if freshness < 1.0:
+                        print("⚠️ ALERT: Milk is LIKELY SPOILED!")
+                    else:
+                        print("✅ Milk appears FRESH.")
+                    
+                    save_to_mongodb(now, temp, gas, ph, freshness)
+                    send_to_thingspeak(temp, gas, ph, freshness)
+                else:
+                    print("⚠️ Could not predict freshness.")
+
+                print("\n")
+        else:
+            buffer.append(line)
+
+# ==== Start ====
+if __name__ == "__main__":
+    main()
