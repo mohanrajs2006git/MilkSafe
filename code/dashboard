@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Milk Freshness Monitoring</title>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f4f4f4;
+    }
+    h1, h3 {
+      text-align: center;
+    }
+    .chart-container {
+      width: 90%;
+      max-width: 900px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 90%;
+      max-width: 1000px;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    caption {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+
+    .prediction-fresh { color: green; font-weight: bold; }
+    .prediction-warning { color: orange; font-weight: bold; }
+    .prediction-spoiled { color: red; font-weight: bold; }
+
+    .time-spoilage { font-weight: bold; }
+    .time-fresh { color: blue; }
+    .time-warning { color: orange; }
+    .time-spoiled { color: red; }
+
+    .chart-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+    }
+    .chart-box {
+      flex: 1 1 400px;
+      max-width: 500px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Milk Freshness Monitoring Dashboard</h1>
+
+  <table>
+    <caption>Individual Sample Readings</caption>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>pH</th>
+        <th>Temperature (°C)</th>
+        <th>Gas (ppm)</th>
+        <th>Prediction</th>
+        <th>Time to Spoilage</th>
+      </tr>
+    </thead>
+    <tbody id="dataTableBody">
+      <!-- Data rows go here -->
+    </tbody>
+  </table>
+
+  <div class="chart-row">
+    <div class="chart-box">
+      <h3>Sensor Readings (Last 7 Samples)</h3>
+      <canvas id="barChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>Milk Quality Status</h3>
+      <canvas id="pieChart"></canvas>
+      <p style="text-align:center; font-size: 0.9em;">
+        <span style="color:green;">Fresh</span>, 
+        <span style="color:orange;">Warning</span>, 
+        <span style="color:red;">Spoiled</span>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const CHANNEL_ID = '2977869';   // <-- your ThingSpeak channel
+    const READ_API_KEY = 'O67IW05CVAQ33G9R'; // <-- your read API key
+    const RESULTS_LIMIT = 20;
+
+    const API_URL = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?results=${RESULTS_LIMIT}&api_key=${READ_API_KEY}`;
+
+    async function fetchData() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        return data.feeds;
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        return [];
+      }
+    }
+
+    function updateTable(feeds) {
+      const tbody = document.getElementById('dataTableBody');
+      tbody.innerHTML = '';
+
+      feeds.slice().reverse().forEach((feed, index) => {
+        const row = document.createElement('tr');
+
+        const indexCell = document.createElement('td');
+        indexCell.textContent = index + 1;
+        row.appendChild(indexCell);
+
+        const phCell = document.createElement('td');
+        phCell.textContent = feed.field1 || '-';
+        row.appendChild(phCell);
+
+        const tempCell = document.createElement('td');
+        tempCell.textContent = feed.field2 || '-';
+        row.appendChild(tempCell);
+
+        const gasCell = document.createElement('td');
+        gasCell.textContent = feed.field3 || '-';
+        row.appendChild(gasCell);
+
+        const timeVal = parseFloat(feed.field4);
+        let predictionLabel = '', predictionClass = '', timeClass = '';
+
+        if (timeVal > 8) {
+          predictionLabel = 'Fresh';
+          predictionClass = 'prediction-fresh';
+          timeClass = 'time-fresh';
+        } else if (timeVal > 0) {
+          predictionLabel = 'Warning';
+          predictionClass = 'prediction-warning';
+          timeClass = 'time-warning';
+        } else {
+          predictionLabel = 'Spoiled';
+          predictionClass = 'prediction-spoiled';
+          timeClass = 'time-spoiled';
+        }
+
+        const predictionCell = document.createElement('td');
+        predictionCell.textContent = predictionLabel;
+        predictionCell.className = predictionClass;
+        row.appendChild(predictionCell);
+
+        const spoilageCell = document.createElement('td');
+        spoilageCell.textContent = isNaN(timeVal) ? '-' : `${timeVal}h`;
+        spoilageCell.className = `time-spoilage ${timeClass}`;
+        row.appendChild(spoilageCell);
+
+        tbody.appendChild(row);
+      });
+    }
+
+    async function refreshData() {
+      const feeds = await fetchData();
+      if (feeds.length === 0) return;
+
+      updateTable(feeds);
+
+      // Prepare chart data
+      let fresh = 0, warning = 0, spoiled = 0;
+      feeds.forEach(f => {
+        const time = parseFloat(f.field4);
+        if (time > 8) fresh++;
+        else if (time > 0) warning++;
+        else spoiled++;
+      });
+
+      const latestFeeds = feeds.slice(-7);
+      const barLabels = latestFeeds.map((_, i) => `Sample ${i + 1}`);
+      const barPH = latestFeeds.map(f => parseFloat(f.field1) || 0);
+      const barTemp = latestFeeds.map(f => parseFloat(f.field2) || 0);
+      const barGas = latestFeeds.map(f => parseFloat(f.field3) || 0);
+
+      // Bar Chart
+      const barCtx = document.getElementById('barChart').getContext('2d');
+      if (window.barChartInstance) window.barChartInstance.destroy();
+      window.barChartInstance = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: barLabels,
+          datasets: [
+            { label: 'pH', data: barPH, backgroundColor: 'purple' },
+            { label: 'Temp (°C)', data: barTemp, backgroundColor: 'orange' },
+            { label: 'Gas (ppm)', data: barGas, backgroundColor: 'gold' }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'top' } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      // Pie Chart
+      const pieCtx = document.getElementById('pieChart').getContext('2d');
+      if (window.pieChartInstance) window.pieChartInstance.destroy();
+      window.pieChartInstance = new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+          labels: ['Fresh', 'Warning', 'Spoiled'],
+          datasets: [{
+            data: [fresh, warning, spoiled],
+            backgroundColor: ['green', 'orange', 'red']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'top' } }
+        }
+      });
+    }
+
+    window.onload = () => {
+      refreshData();
+      setInterval(refreshData, 15000);
+    };
+  </script>
+</body>
+</html>
