@@ -116,7 +116,7 @@ Sensor data is processed by a trained machine learning model that estimates the 
 
 ## 📊 Block Diagram
 
-![Block Diagram](images/Blockdigram.jpg)
+![Image](https://github.com/user-attachments/assets/d6339f67-4abd-4915-95b1-85570e0b5569)
 
 ---
 
@@ -134,15 +134,15 @@ Sensor data is processed by a trained machine learning model that estimates the 
 
 ## 🖼️ Project Images
 ## Working Model
-![Working Model](images/project.jpg)
+![Image](https://github.com/user-attachments/assets/b55e46c4-6607-4094-ad1f-8c8c4cb5e1c6)
 ### 📊 Prediction Table  
-![Prediction Table](images/Predictiontable.jpg)
+![Image](https://github.com/user-attachments/assets/4c72d738-1639-454a-a756-a09dfb86b72b)
 
 ### 📈 Bar & Pie Chart - Freshness Distribution  
-![Bar and Pie Chart](images/BarPiechart.jpg)
+![Image](https://github.com/user-attachments/assets/3b2bdc7b-9ea7-4434-b572-5777b7bcdda8)
 
 ### 🌐 ThinkSpeak Cloud Monitoring  
-![ThinkSpeak Dashboard](images/Thinkspeak.jpg)
+![Image](https://github.com/user-attachments/assets/0d02d763-3204-437c-afdd-f90815d3c2a9)
 
 ---
 
@@ -179,6 +179,6 @@ https://github.com/user-attachments/assets/ed3032ad-ff12-4b73-a92d-7d604d7b6702
 
 ## Contact Information
 
-- Mohan Raj S – [mohanrajs.ec2023@gmail.com](mailto:mohanrajs.ec2023@gmail.com)  
+- Mohan Raj S – [mohanraj.s2023ece@gmail.com](mailto:mohanraj.s2023ece@gmail.com)  
 - Institution: Sri Eshwar College of Engineering  
 - Duration: Jan – May 2025
